@@ -24,8 +24,10 @@ class Compositor:
             with open(self.config_path) as f:
                 return json.load(f)
         return {
-            "1x1": {"x": 0, "y": 0, "scale": 1.0, "loop_count": 1},
-            "9x16": {"x": 0, "y": 0, "scale": 1.0, "loop_count": 1}
+            "1x1_static": {"x": 0, "y": 0, "scale": 1.0},
+            "1x1_video": {"x": 0, "y": 0, "scale": 1.0, "loop_count": 1},
+            "9x16_static": {"x": 0, "y": 0, "scale": 1.0},
+            "9x16_video": {"x": 0, "y": 0, "scale": 1.0, "loop_count": 1}
         }
     
     def save_config(self):
@@ -33,13 +35,19 @@ class Compositor:
         with open(self.config_path, "w") as f:
             json.dump(self.config, f, indent=2)
     
-    def get_position(self, format_type: str) -> dict:
-        """Get overlay position for a format (1x1 or 9x16)"""
-        return self.config.get(format_type, {"x": 0, "y": 0, "scale": 1.0, "loop_count": 1})
+    def get_position(self, format_type: str, overlay_type: str = "static") -> dict:
+        """Get overlay position for a format and overlay type"""
+        key = f"{format_type}_{overlay_type}"
+        defaults = {"x": 0, "y": 0, "scale": 1.0, "loop_count": 1} if overlay_type == "video" else {"x": 0, "y": 0, "scale": 1.0}
+        return self.config.get(key, defaults)
     
-    def set_position(self, format_type: str, x: int, y: int, scale: float = 1.0, loop_count: int = 1):
-        """Set overlay position for a format"""
-        self.config[format_type] = {"x": x, "y": y, "scale": scale, "loop_count": loop_count}
+    def set_position(self, format_type: str, x: int, y: int, scale: float = 1.0, loop_count: int = 1, overlay_type: str = "static"):
+        """Set overlay position for a format and overlay type"""
+        key = f"{format_type}_{overlay_type}"
+        if overlay_type == "video":
+            self.config[key] = {"x": x, "y": y, "scale": scale, "loop_count": loop_count}
+        else:
+            self.config[key] = {"x": x, "y": y, "scale": scale}
         self.save_config()
     
     def composite_static(
@@ -204,14 +212,15 @@ class Compositor:
         # Build task list - 1x1 heroes with 1x1 overlays
         for hero in heroes_1x1:
             format_type = "1x1"
-            pos = self.get_position(format_type)
 
             for overlay in overlays_static_1x1:
+                pos = self.get_position(format_type, "static")
                 output_name = f"{hero.stem}_{overlay.stem}.png"
                 output_path = self.base_path / "outputs" / format_type / output_name
                 all_tasks.append(("static", hero, overlay, output_path, pos, format_type))
 
             for overlay in overlays_video_1x1:
+                pos = self.get_position(format_type, "video")
                 output_name = f"{hero.stem}_{overlay.stem}.mp4"
                 output_path = self.base_path / "outputs" / format_type / output_name
                 all_tasks.append(("video", hero, overlay, output_path, pos, format_type))
@@ -219,14 +228,15 @@ class Compositor:
         # 9x16 heroes with 9x16 overlays
         for hero in heroes_9x16:
             format_type = "9x16"
-            pos = self.get_position(format_type)
 
             for overlay in overlays_static_9x16:
+                pos = self.get_position(format_type, "static")
                 output_name = f"{hero.stem}_{overlay.stem}.png"
                 output_path = self.base_path / "outputs" / format_type / output_name
                 all_tasks.append(("static", hero, overlay, output_path, pos, format_type))
 
             for overlay in overlays_video_9x16:
+                pos = self.get_position(format_type, "video")
                 output_name = f"{hero.stem}_{overlay.stem}.mp4"
                 output_path = self.base_path / "outputs" / format_type / output_name
                 all_tasks.append(("video", hero, overlay, output_path, pos, format_type))

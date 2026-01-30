@@ -315,11 +315,13 @@ def main():
                 if hero_1x1:
                     hero_dims = comp.get_hero_dimensions(hero_1x1)
                     st.caption(f"Hero size: {hero_dims[0]}x{hero_dims[1]}")
-                
+
                 st.divider()
-                
-                # Position controls
-                pos = comp.get_position("1x1")
+
+                # Detect overlay type and load appropriate position
+                is_video_1x1 = overlay_preview and overlay_preview.suffix.lower() in ['.mov', '.mp4']
+                overlay_type_1x1 = "video" if is_video_1x1 else "static"
+                pos = comp.get_position("1x1", overlay_type_1x1)
                 
                 x_1x1 = st.slider(
                     "X Position",
@@ -368,8 +370,8 @@ def main():
                 st.divider()
 
                 if st.button("Save 1x1 Position", type="primary", icon=":material/check:"):
-                    comp.set_position("1x1", x_1x1, y_1x1, scale_1x1, loop_count_1x1)
-                    st.success("Position saved!")
+                    comp.set_position("1x1", x_1x1, y_1x1, scale_1x1, loop_count_1x1, overlay_type_1x1)
+                    st.success(f"Position saved for 1x1 {overlay_type_1x1} overlays!")
             
             with col2:
                 # Live preview
@@ -417,10 +419,13 @@ def main():
                 if hero_9x16:
                     hero_dims_9x16 = comp.get_hero_dimensions(hero_9x16)
                     st.caption(f"Hero size: {hero_dims_9x16[0]}x{hero_dims_9x16[1]}")
-                
+
                 st.divider()
-                
-                pos_9x16 = comp.get_position("9x16")
+
+                # Detect overlay type and load appropriate position
+                is_video_9x16 = overlay_preview_9x16 and overlay_preview_9x16.suffix.lower() in ['.mov', '.mp4']
+                overlay_type_9x16 = "video" if is_video_9x16 else "static"
+                pos_9x16 = comp.get_position("9x16", overlay_type_9x16)
                 
                 x_9x16 = st.slider(
                     "X Position",
@@ -469,8 +474,8 @@ def main():
                 st.divider()
 
                 if st.button("Save 9x16 Position", type="primary", icon=":material/check:"):
-                    comp.set_position("9x16", x_9x16, y_9x16, scale_9x16, loop_count_9x16)
-                    st.success("Position saved!")
+                    comp.set_position("9x16", x_9x16, y_9x16, scale_9x16, loop_count_9x16, overlay_type_9x16)
+                    st.success(f"Position saved for 9x16 {overlay_type_9x16} overlays!")
             
             with col2:
                 if hero_9x16 and overlay_preview_9x16:
@@ -493,12 +498,12 @@ def main():
         
         with col1:
             st.markdown('<p class="section-header">Current Positions</p>', unsafe_allow_html=True)
-            pos_1x1 = comp.get_position("1x1")
-            pos_9x16 = comp.get_position("9x16")
-            
+
             st.json({
-                "1x1": pos_1x1,
-                "9x16": pos_9x16
+                "1x1_static": comp.get_position("1x1", "static"),
+                "1x1_video": comp.get_position("1x1", "video"),
+                "9x16_static": comp.get_position("9x16", "static"),
+                "9x16_video": comp.get_position("9x16", "video")
             })
         
         with col2:
