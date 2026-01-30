@@ -237,10 +237,6 @@ def create_preview(hero_path: Path, overlay_path: Path, position: dict) -> Image
     result = hero.copy()
     x, y = int(position["x"]), int(position["y"])
 
-    # Clamp to bounds for preview
-    x = max(0, min(x, hero.width - 1))
-    y = max(0, min(y, hero.height - 1))
-
     result.paste(overlay, (x, y), overlay)
     return result
 
@@ -326,16 +322,16 @@ def main():
                 pos = comp.get_position("1x1")
                 
                 x_1x1 = st.slider(
-                    "X Position", 
-                    min_value=0, 
+                    "X Position",
+                    min_value=-(hero_dims[0] // 2) if hero_1x1 else -540,
                     max_value=hero_dims[0] if hero_1x1 else 1080,
                     value=int(pos["x"]),
                     key="x_1x1"
                 )
-                
+
                 y_1x1 = st.slider(
                     "Y Position",
-                    min_value=0,
+                    min_value=-(hero_dims[1] // 2) if hero_1x1 else -540,
                     max_value=hero_dims[1] if hero_1x1 else 1080,
                     value=int(pos["y"]),
                     key="y_1x1"
@@ -407,15 +403,15 @@ def main():
                 
                 x_9x16 = st.slider(
                     "X Position",
-                    min_value=0,
+                    min_value=-(hero_dims_9x16[0] // 2) if hero_9x16 else -540,
                     max_value=hero_dims_9x16[0] if hero_9x16 else 1080,
                     value=int(pos_9x16["x"]),
                     key="x_9x16"
                 )
-                
+
                 y_9x16 = st.slider(
                     "Y Position",
-                    min_value=0,
+                    min_value=-(hero_dims_9x16[1] // 2) if hero_9x16 else -960,
                     max_value=hero_dims_9x16[1] if hero_9x16 else 1920,
                     value=int(pos_9x16["y"]),
                     key="y_9x16"
