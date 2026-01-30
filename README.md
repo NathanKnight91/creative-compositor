@@ -1,5 +1,27 @@
 # Creative Compositor
 
+```
+    ┌─────────────────────┐
+    │  ░░░ OVERLAY ░░░░░  │
+    │  ░░░░░░░░░░░░░░░░░  │
+    └──────────┬──────────┘
+               │
+               ▼
+    ┌─────────────────────┐
+    │                     │
+    │    ██ HERO ██       │
+    │                     │
+    └──────────┬──────────┘
+               │
+               ▼
+    ╔═════════════════════╗
+    ║  ░░░░░░░░░░░░░░░░░  ║
+    ║  ░░░ ██████ ░░░░░░  ║
+    ║  ░░░░░░░░░░░░░░░░░  ║
+    ╚═════════════════════╝
+          COMPOSITE
+```
+
 Streamlit app for compositing hero images with overlays (static PNG and video) across multiple aspect ratios.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
@@ -18,7 +40,7 @@ Streamlit app for compositing hero images with overlays (static PNG and video) a
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/creative-compositor.git
+git clone https://github.com/NathanKnight91/creative-compositor.git
 cd creative-compositor
 
 # Install dependencies

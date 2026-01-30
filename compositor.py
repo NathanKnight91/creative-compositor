@@ -143,7 +143,34 @@ class Compositor:
             return float(result.stdout.strip())
         except:
             return 5.0  # Default fallback
-    
+
+    def extract_first_frame(self, video_path: Path) -> Optional[Image.Image]:
+        """Extract first frame from video as PIL Image for preview"""
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+                tmp_path = tmp.name
+
+            cmd = [
+                "ffmpeg", "-y",
+                "-i", str(video_path),
+                "-vframes", "1",
+                "-f", "image2",
+                tmp_path
+            ]
+
+            result = subprocess.run(cmd, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                return None
+
+            img = Image.open(tmp_path).convert("RGBA")
+            Path(tmp_path).unlink()  # Clean up temp file
+            return img
+
+        except Exception as e:
+            print(f"Error extracting frame: {e}")
+            return None
+
     def get_hero_dimensions(self, hero_path: Path) -> tuple:
         """Get dimensions of a hero image"""
         with Image.open(hero_path) as img:

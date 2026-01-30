@@ -217,22 +217,30 @@ comp = Compositor(BASE_PATH)
 def create_preview(hero_path: Path, overlay_path: Path, position: dict) -> Image.Image:
     """Create a preview composite image"""
     hero = Image.open(hero_path).convert("RGBA")
-    overlay = Image.open(overlay_path).convert("RGBA")
-    
+
+    # Handle video overlays - extract first frame
+    if overlay_path.suffix.lower() in ['.mov', '.mp4']:
+        overlay = comp.extract_first_frame(overlay_path)
+        if overlay is None:
+            # Fallback: show hero only if frame extraction fails
+            return hero
+    else:
+        overlay = Image.open(overlay_path).convert("RGBA")
+
     # Scale overlay
     scale = position.get("scale", 1.0)
     if scale != 1.0:
         new_size = (int(overlay.width * scale), int(overlay.height * scale))
         overlay = overlay.resize(new_size, Image.Resampling.LANCZOS)
-    
+
     # Composite
     result = hero.copy()
     x, y = int(position["x"]), int(position["y"])
-    
+
     # Clamp to bounds for preview
     x = max(0, min(x, hero.width - 1))
     y = max(0, min(y, hero.height - 1))
-    
+
     result.paste(overlay, (x, y), overlay)
     return result
 
@@ -284,8 +292,8 @@ def main():
 
         if not inputs['heroes_1x1']:
             st.warning("No 1x1 heroes found. Add images to `inputs/heroes/1x1/`")
-        elif not inputs['overlays_static_1x1']:
-            st.warning("No 1x1 static overlays found. Add PNGs to `inputs/overlays/static/1x1/`")
+        elif not inputs['overlays_static_1x1'] and not inputs['overlays_video_1x1']:
+            st.warning("No 1x1 overlays found. Add files to `inputs/overlays/static/1x1/` or `inputs/overlays/video/1x1/`")
         else:
             col1, col2 = st.columns([1, 2])
 
@@ -298,10 +306,12 @@ def main():
                     key="hero_1x1"
                 )
 
+                # Combine static and video overlays for preview
+                all_overlays_1x1 = inputs['overlays_static_1x1'] + inputs['overlays_video_1x1']
                 overlay_preview = st.selectbox(
                     "Preview Overlay",
-                    inputs['overlays_static_1x1'],
-                    format_func=lambda x: x.name,
+                    all_overlays_1x1,
+                    format_func=lambda x: f"{x.name} {'[VIDEO]' if x.suffix.lower() in ['.mov', '.mp4'] else '[STATIC]'}",
                     key="overlay_1x1"
                 )
                 
@@ -365,8 +375,8 @@ def main():
 
         if not inputs['heroes_9x16']:
             st.warning("No 9x16 heroes found. Add images to `inputs/heroes/9x16/`")
-        elif not inputs['overlays_static_9x16']:
-            st.warning("No 9x16 static overlays found. Add PNGs to `inputs/overlays/static/9x16/`")
+        elif not inputs['overlays_static_9x16'] and not inputs['overlays_video_9x16']:
+            st.warning("No 9x16 overlays found. Add files to `inputs/overlays/static/9x16/` or `inputs/overlays/video/9x16/`")
         else:
             col1, col2 = st.columns([1, 2])
 
@@ -378,10 +388,12 @@ def main():
                     key="hero_9x16"
                 )
 
+                # Combine static and video overlays for preview
+                all_overlays_9x16 = inputs['overlays_static_9x16'] + inputs['overlays_video_9x16']
                 overlay_preview_9x16 = st.selectbox(
                     "Preview Overlay",
-                    inputs['overlays_static_9x16'],
-                    format_func=lambda x: x.name,
+                    all_overlays_9x16,
+                    format_func=lambda x: f"{x.name} {'[VIDEO]' if x.suffix.lower() in ['.mov', '.mp4'] else '[STATIC]'}",
                     key="overlay_9x16"
                 )
                 
