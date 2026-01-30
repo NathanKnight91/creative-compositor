@@ -24,8 +24,8 @@ class Compositor:
             with open(self.config_path) as f:
                 return json.load(f)
         return {
-            "1x1": {"x": 0, "y": 0, "scale": 1.0},
-            "9x16": {"x": 0, "y": 0, "scale": 1.0}
+            "1x1": {"x": 0, "y": 0, "scale": 1.0, "loop_count": 1},
+            "9x16": {"x": 0, "y": 0, "scale": 1.0, "loop_count": 1}
         }
     
     def save_config(self):
@@ -35,11 +35,11 @@ class Compositor:
     
     def get_position(self, format_type: str) -> dict:
         """Get overlay position for a format (1x1 or 9x16)"""
-        return self.config.get(format_type, {"x": 0, "y": 0, "scale": 1.0})
+        return self.config.get(format_type, {"x": 0, "y": 0, "scale": 1.0, "loop_count": 1})
     
-    def set_position(self, format_type: str, x: int, y: int, scale: float = 1.0):
+    def set_position(self, format_type: str, x: int, y: int, scale: float = 1.0, loop_count: int = 1):
         """Set overlay position for a format"""
-        self.config[format_type] = {"x": x, "y": y, "scale": scale}
+        self.config[format_type] = {"x": x, "y": y, "scale": scale, "loop_count": loop_count}
         self.save_config()
     
     def composite_static(
@@ -91,24 +91,30 @@ class Compositor:
         try:
             # Get overlay video duration if not specified
             if duration is None:
-                duration = self._get_video_duration(overlay_path)
-            
+                base_duration = self._get_video_duration(overlay_path)
+            else:
+                base_duration = duration
+
+            # Apply loop count
+            loop_count = position.get("loop_count", 1)
+            final_duration = base_duration * loop_count
+
             x, y = int(position["x"]), int(position["y"])
             scale = position.get("scale", 1.0)
-            
+
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             # Build FFmpeg command
             # Uses overlay filter with alpha channel support
             scale_filter = f"scale=iw*{scale}:ih*{scale}" if scale != 1.0 else "null"
-            
+
             cmd = [
                 "ffmpeg", "-y",
                 "-loop", "1", "-i", str(hero_path),      # Loop static hero
-                "-i", str(overlay_path),                  # Video overlay with alpha
+                "-stream_loop", str(loop_count - 1), "-i", str(overlay_path),  # Loop overlay
                 "-filter_complex",
                 f"[1:v]{scale_filter},format=rgba[ovr];[0:v][ovr]overlay={x}:{y}:shortest=1",
-                "-t", str(duration),
+                "-t", str(final_duration),
                 "-c:v", "libx264",
                 "-preset", "medium",
                 "-crf", "18",

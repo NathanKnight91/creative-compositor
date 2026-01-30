@@ -345,9 +345,30 @@ def main():
                     step=0.05,
                     key="scale_1x1"
                 )
-                
+
+                # Video loop settings
+                if overlay_preview and overlay_preview.suffix.lower() in ['.mov', '.mp4']:
+                    st.divider()
+                    overlay_duration = comp._get_video_duration(overlay_preview)
+                    st.caption(f"Overlay duration: {overlay_duration:.2f}s")
+
+                    loop_count_1x1 = st.slider(
+                        "Loop Count",
+                        min_value=1,
+                        max_value=10,
+                        value=int(pos.get("loop_count", 1)),
+                        key="loop_1x1"
+                    )
+
+                    final_duration = overlay_duration * loop_count_1x1
+                    st.caption(f"Final video: {final_duration:.2f}s")
+                else:
+                    loop_count_1x1 = 1
+
+                st.divider()
+
                 if st.button("Save 1x1 Position", type="primary", icon=":material/check:"):
-                    comp.set_position("1x1", x_1x1, y_1x1, scale_1x1)
+                    comp.set_position("1x1", x_1x1, y_1x1, scale_1x1, loop_count_1x1)
                     st.success("Position saved!")
             
             with col2:
@@ -425,9 +446,30 @@ def main():
                     step=0.05,
                     key="scale_9x16"
                 )
-                
+
+                # Video loop settings
+                if overlay_preview_9x16 and overlay_preview_9x16.suffix.lower() in ['.mov', '.mp4']:
+                    st.divider()
+                    overlay_duration = comp._get_video_duration(overlay_preview_9x16)
+                    st.caption(f"Overlay duration: {overlay_duration:.2f}s")
+
+                    loop_count_9x16 = st.slider(
+                        "Loop Count",
+                        min_value=1,
+                        max_value=10,
+                        value=int(pos_9x16.get("loop_count", 1)),
+                        key="loop_9x16"
+                    )
+
+                    final_duration = overlay_duration * loop_count_9x16
+                    st.caption(f"Final video: {final_duration:.2f}s")
+                else:
+                    loop_count_9x16 = 1
+
+                st.divider()
+
                 if st.button("Save 9x16 Position", type="primary", icon=":material/check:"):
-                    comp.set_position("9x16", x_9x16, y_9x16, scale_9x16)
+                    comp.set_position("9x16", x_9x16, y_9x16, scale_9x16, loop_count_9x16)
                     st.success("Position saved!")
             
             with col2:
