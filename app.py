@@ -328,7 +328,7 @@ def main():
                     min_value=-(hero_dims[0] // 2) if hero_1x1 else -540,
                     max_value=hero_dims[0] if hero_1x1 else 1080,
                     value=int(pos["x"]),
-                    key="x_1x1"
+                    key=f"x_1x1_{overlay_type_1x1}"
                 )
 
                 y_1x1 = st.slider(
@@ -336,16 +336,16 @@ def main():
                     min_value=-(hero_dims[1] // 2) if hero_1x1 else -540,
                     max_value=hero_dims[1] if hero_1x1 else 1080,
                     value=int(pos["y"]),
-                    key="y_1x1"
+                    key=f"y_1x1_{overlay_type_1x1}"
                 )
-                
+
                 scale_1x1 = st.slider(
                     "Scale",
                     min_value=0.1,
                     max_value=2.0,
                     value=float(pos.get("scale", 1.0)),
                     step=0.05,
-                    key="scale_1x1"
+                    key=f"scale_1x1_{overlay_type_1x1}"
                 )
 
                 # Video loop settings
@@ -359,7 +359,7 @@ def main():
                         min_value=1,
                         max_value=10,
                         value=int(pos.get("loop_count", 1)),
-                        key="loop_1x1"
+                        key=f"loop_1x1_{overlay_type_1x1}"
                     )
 
                     final_duration = overlay_duration * loop_count_1x1
@@ -432,7 +432,7 @@ def main():
                     min_value=-(hero_dims_9x16[0] // 2) if hero_9x16 else -540,
                     max_value=hero_dims_9x16[0] if hero_9x16 else 1080,
                     value=int(pos_9x16["x"]),
-                    key="x_9x16"
+                    key=f"x_9x16_{overlay_type_9x16}"
                 )
 
                 y_9x16 = st.slider(
@@ -440,16 +440,16 @@ def main():
                     min_value=-(hero_dims_9x16[1] // 2) if hero_9x16 else -960,
                     max_value=hero_dims_9x16[1] if hero_9x16 else 1920,
                     value=int(pos_9x16["y"]),
-                    key="y_9x16"
+                    key=f"y_9x16_{overlay_type_9x16}"
                 )
-                
+
                 scale_9x16 = st.slider(
                     "Scale",
                     min_value=0.1,
                     max_value=2.0,
                     value=float(pos_9x16.get("scale", 1.0)),
                     step=0.05,
-                    key="scale_9x16"
+                    key=f"scale_9x16_{overlay_type_9x16}"
                 )
 
                 # Video loop settings
@@ -463,7 +463,7 @@ def main():
                         min_value=1,
                         max_value=10,
                         value=int(pos_9x16.get("loop_count", 1)),
-                        key="loop_9x16"
+                        key=f"loop_9x16_{overlay_type_9x16}"
                     )
 
                     final_duration = overlay_duration * loop_count_9x16
