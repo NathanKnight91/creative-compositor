@@ -214,13 +214,13 @@ BASE_PATH = Path(__file__).parent
 comp = Compositor(BASE_PATH)
 
 
-def create_preview(hero_path: Path, overlay_path: Path, position: dict) -> Image.Image:
+def create_preview(hero_path: Path, overlay_path: Path, position: dict, frame_position: float = 0.0) -> Image.Image:
     """Create a preview composite image"""
     hero = Image.open(hero_path).convert("RGBA")
 
-    # Handle video overlays - extract first frame
+    # Handle video overlays - extract frame at specified position
     if overlay_path.suffix.lower() in ['.mov', '.mp4']:
-        overlay = comp.extract_first_frame(overlay_path)
+        overlay = comp.extract_first_frame(overlay_path, frame_position)
         if overlay is None:
             # Fallback: show hero only if frame extraction fails
             return hero
@@ -322,7 +322,22 @@ def main():
                 is_video_1x1 = overlay_preview and overlay_preview.suffix.lower() in ['.mov', '.mp4']
                 overlay_type_1x1 = "video" if is_video_1x1 else "static"
                 pos = comp.get_position("1x1", overlay_type_1x1)
-                
+
+                # Frame position slider for video previews
+                if is_video_1x1:
+                    frame_pos_1x1 = st.slider(
+                        "Preview Frame Position",
+                        min_value=0.0,
+                        max_value=1.0,
+                        value=0.5,
+                        step=0.01,
+                        help="Scrub through video to find positioning frame (0% = start, 100% = end)",
+                        key=f"frame_pos_1x1_{overlay_type_1x1}"
+                    )
+                    st.caption(f"Preview at: {int(frame_pos_1x1 * 100)}%")
+                else:
+                    frame_pos_1x1 = 0.0
+
                 x_1x1 = st.slider(
                     "X Position",
                     min_value=-(hero_dims[0] // 2) if hero_1x1 else -540,
@@ -377,7 +392,7 @@ def main():
                 # Live preview
                 if hero_1x1 and overlay_preview:
                     preview_pos = {"x": x_1x1, "y": y_1x1, "scale": scale_1x1}
-                    preview = create_preview(hero_1x1, overlay_preview, preview_pos)
+                    preview = create_preview(hero_1x1, overlay_preview, preview_pos, frame_pos_1x1)
                     
                     # Resize for display if needed
                     max_display = 600
@@ -426,7 +441,22 @@ def main():
                 is_video_9x16 = overlay_preview_9x16 and overlay_preview_9x16.suffix.lower() in ['.mov', '.mp4']
                 overlay_type_9x16 = "video" if is_video_9x16 else "static"
                 pos_9x16 = comp.get_position("9x16", overlay_type_9x16)
-                
+
+                # Frame position slider for video previews
+                if is_video_9x16:
+                    frame_pos_9x16 = st.slider(
+                        "Preview Frame Position",
+                        min_value=0.0,
+                        max_value=1.0,
+                        value=0.5,
+                        step=0.01,
+                        help="Scrub through video to find positioning frame (0% = start, 100% = end)",
+                        key=f"frame_pos_9x16_{overlay_type_9x16}"
+                    )
+                    st.caption(f"Preview at: {int(frame_pos_9x16 * 100)}%")
+                else:
+                    frame_pos_9x16 = 0.0
+
                 x_9x16 = st.slider(
                     "X Position",
                     min_value=-(hero_dims_9x16[0] // 2) if hero_9x16 else -540,
@@ -480,7 +510,7 @@ def main():
             with col2:
                 if hero_9x16 and overlay_preview_9x16:
                     preview_pos = {"x": x_9x16, "y": y_9x16, "scale": scale_9x16}
-                    preview = create_preview(hero_9x16, overlay_preview_9x16, preview_pos)
+                    preview = create_preview(hero_9x16, overlay_preview_9x16, preview_pos, frame_pos_9x16)
                     
                     max_display = 500
                     if preview.width > max_display or preview.height > max_display:

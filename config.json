@@ -9,5 +9,16 @@
     "y": -85,
     "scale": 0.3,
     "loop_count": 7
+  },
+  "9x16_video": {
+    "x": -420,
+    "y": -50,
+    "scale": 0.3,
+    "loop_count": 7
+  },
+  "9x16_static": {
+    "x": 0,
+    "y": 0,
+    "scale": 1.0
   }
 }

@@ -158,19 +158,38 @@ class Compositor:
         except:
             return 5.0  # Default fallback
 
-    def extract_first_frame(self, video_path: Path) -> Optional[Image.Image]:
-        """Extract first frame from video as PIL Image for preview"""
+    def extract_first_frame(self, video_path: Path, frame_position: float = 0.0) -> Optional[Image.Image]:
+        """
+        Extract frame from video as PIL Image for preview
+
+        Args:
+            video_path: Path to video file
+            frame_position: Position in video (0.0 = start, 1.0 = end)
+        """
         try:
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
                 tmp_path = tmp.name
 
-            cmd = [
-                "ffmpeg", "-y",
-                "-i", str(video_path),
-                "-vframes", "1",
-                "-f", "image2",
-                tmp_path
-            ]
+            # Calculate timestamp based on position
+            if frame_position > 0:
+                duration = self._get_video_duration(video_path)
+                timestamp = duration * frame_position
+                cmd = [
+                    "ffmpeg", "-y",
+                    "-ss", str(timestamp),
+                    "-i", str(video_path),
+                    "-vframes", "1",
+                    "-f", "image2",
+                    tmp_path
+                ]
+            else:
+                cmd = [
+                    "ffmpeg", "-y",
+                    "-i", str(video_path),
+                    "-vframes", "1",
+                    "-f", "image2",
+                    tmp_path
+                ]
 
             result = subprocess.run(cmd, capture_output=True, text=True)
 
