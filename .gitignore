@@ -23,3 +23,10 @@ env/
 inputs/
 outputs/
 *.tar.gz
+
+# Asset files in root (should be in inputs/)
+/*.png
+/*.jpg
+/*.jpeg
+/*.mov
+/*.mp4
