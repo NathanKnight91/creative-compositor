@@ -11,10 +11,10 @@
     "loop_count": 7
   },
   "9x16_video": {
-    "x": -420,
+    "x": 50,
     "y": -50,
-    "scale": 0.3,
-    "loop_count": 7
+    "scale": 1.0,
+    "loop_count": 1
   },
   "9x16_static": {
     "x": 0,

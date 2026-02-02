@@ -217,6 +217,7 @@ class Compositor:
         overlays_static_9x16: list[Path],
         overlays_video_1x1: list[Path],
         overlays_video_9x16: list[Path],
+        output_subfolder: str = "",
         progress_callback=None
     ) -> dict:
         """
@@ -235,13 +236,19 @@ class Compositor:
             for overlay in overlays_static_1x1:
                 pos = self.get_position(format_type, "static")
                 output_name = f"{hero.stem}_{overlay.stem}.png"
-                output_path = self.base_path / "outputs" / format_type / output_name
+                if output_subfolder:
+                    output_path = self.base_path / "outputs" / format_type / output_subfolder / output_name
+                else:
+                    output_path = self.base_path / "outputs" / format_type / output_name
                 all_tasks.append(("static", hero, overlay, output_path, pos, format_type))
 
             for overlay in overlays_video_1x1:
                 pos = self.get_position(format_type, "video")
                 output_name = f"{hero.stem}_{overlay.stem}.mp4"
-                output_path = self.base_path / "outputs" / format_type / output_name
+                if output_subfolder:
+                    output_path = self.base_path / "outputs" / format_type / output_subfolder / output_name
+                else:
+                    output_path = self.base_path / "outputs" / format_type / output_name
                 all_tasks.append(("video", hero, overlay, output_path, pos, format_type))
 
         # 9x16 heroes with 9x16 overlays
@@ -251,13 +258,19 @@ class Compositor:
             for overlay in overlays_static_9x16:
                 pos = self.get_position(format_type, "static")
                 output_name = f"{hero.stem}_{overlay.stem}.png"
-                output_path = self.base_path / "outputs" / format_type / output_name
+                if output_subfolder:
+                    output_path = self.base_path / "outputs" / format_type / output_subfolder / output_name
+                else:
+                    output_path = self.base_path / "outputs" / format_type / output_name
                 all_tasks.append(("static", hero, overlay, output_path, pos, format_type))
 
             for overlay in overlays_video_9x16:
                 pos = self.get_position(format_type, "video")
                 output_name = f"{hero.stem}_{overlay.stem}.mp4"
-                output_path = self.base_path / "outputs" / format_type / output_name
+                if output_subfolder:
+                    output_path = self.base_path / "outputs" / format_type / output_subfolder / output_name
+                else:
+                    output_path = self.base_path / "outputs" / format_type / output_name
                 all_tasks.append(("video", hero, overlay, output_path, pos, format_type))
         
         # Execute tasks
@@ -283,20 +296,40 @@ class Compositor:
 
 
 def scan_inputs(base_path: Path) -> dict:
-    """Scan input folders and return found files"""
+    """Scan input folders and return found files organized by subfolder"""
+
+    def scan_with_subfolders(path: Path, extensions: list) -> dict:
+        """Scan directory for files, organizing by subfolder"""
+        result = {"root": [], "subfolders": {}}
+
+        if not path.exists():
+            return result
+
+        # Get files in root
+        for ext in extensions:
+            result["root"].extend(list(path.glob(f"*.{ext}")))
+
+        # Get subfolders and their files
+        for subfolder in path.iterdir():
+            if subfolder.is_dir():
+                files = []
+                for ext in extensions:
+                    files.extend(list(subfolder.glob(f"*.{ext}")))
+                if files:
+                    result["subfolders"][subfolder.name] = files
+
+        return result
+
+    image_exts = ["png", "jpg", "jpeg", "PNG", "JPG", "JPEG"]
+    video_exts = ["mov", "MOV", "mp4", "MP4"]
+
     return {
-        "heroes_1x1": list((base_path / "inputs/heroes/1x1").glob("*.png")) +
-                      list((base_path / "inputs/heroes/1x1").glob("*.jpg")) +
-                      list((base_path / "inputs/heroes/1x1").glob("*.jpeg")),
-        "heroes_9x16": list((base_path / "inputs/heroes/9x16").glob("*.png")) +
-                       list((base_path / "inputs/heroes/9x16").glob("*.jpg")) +
-                       list((base_path / "inputs/heroes/9x16").glob("*.jpeg")),
-        "overlays_static_1x1": list((base_path / "inputs/overlays/static/1x1").glob("*.png")),
-        "overlays_static_9x16": list((base_path / "inputs/overlays/static/9x16").glob("*.png")),
-        "overlays_video_1x1": list((base_path / "inputs/overlays/video/1x1").glob("*.mov")) +
-                              list((base_path / "inputs/overlays/video/1x1").glob("*.MOV")),
-        "overlays_video_9x16": list((base_path / "inputs/overlays/video/9x16").glob("*.mov")) +
-                               list((base_path / "inputs/overlays/video/9x16").glob("*.MOV"))
+        "heroes_1x1": scan_with_subfolders(base_path / "inputs/heroes/1x1", image_exts),
+        "heroes_9x16": scan_with_subfolders(base_path / "inputs/heroes/9x16", image_exts),
+        "overlays_static_1x1": scan_with_subfolders(base_path / "inputs/overlays/static/1x1", ["png", "PNG"]),
+        "overlays_static_9x16": scan_with_subfolders(base_path / "inputs/overlays/static/9x16", ["png", "PNG"]),
+        "overlays_video_1x1": scan_with_subfolders(base_path / "inputs/overlays/video/1x1", video_exts),
+        "overlays_video_9x16": scan_with_subfolders(base_path / "inputs/overlays/video/9x16", video_exts)
     }
 
 

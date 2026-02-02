@@ -214,6 +214,28 @@ BASE_PATH = Path(__file__).parent
 comp = Compositor(BASE_PATH)
 
 
+def flatten_files(file_dict: dict) -> list[Path]:
+    """Flatten subfolder structure into single file list"""
+    files = list(file_dict.get("root", []))
+    for subfolder_files in file_dict.get("subfolders", {}).values():
+        files.extend(subfolder_files)
+    return files
+
+
+def get_subfolders(file_dict: dict) -> list[str]:
+    """Get list of available subfolders"""
+    subfolders = list(file_dict.get("subfolders", {}).keys())
+    return ["all"] + sorted(subfolders) if subfolders else ["all"]
+
+
+def filter_by_subfolder(file_dict: dict, subfolder: str) -> list[Path]:
+    """Filter files by subfolder selection"""
+    if subfolder == "all":
+        return flatten_files(file_dict)
+    else:
+        return file_dict.get("subfolders", {}).get(subfolder, [])
+
+
 def create_preview(hero_path: Path, overlay_path: Path, position: dict, frame_position: float = 0.0) -> Image.Image:
     """Create a preview composite image"""
     hero = Image.open(hero_path).convert("RGBA")
@@ -253,21 +275,26 @@ def main():
         st.markdown(f'<div class="icon" style="font-size: 1.2rem; font-weight: 600; margin-bottom: 16px;">{ICONS["folder"]} Input Files</div>', unsafe_allow_html=True)
 
         st.markdown('<p class="section-header">Heroes</p>', unsafe_allow_html=True)
-        st.write(f"1x1: {len(inputs['heroes_1x1'])} files")
-        st.write(f"9x16: {len(inputs['heroes_9x16'])} files")
+        st.write(f"1x1: {len(flatten_files(inputs['heroes_1x1']))} files")
+        st.write(f"9x16: {len(flatten_files(inputs['heroes_9x16']))} files")
 
         st.markdown('<p class="section-header" style="margin-top: 16px;">Overlays (1x1)</p>', unsafe_allow_html=True)
-        st.write(f"Static: {len(inputs['overlays_static_1x1'])} files")
-        st.write(f"Video: {len(inputs['overlays_video_1x1'])} files")
+        st.write(f"Static: {len(flatten_files(inputs['overlays_static_1x1']))} files")
+        st.write(f"Video: {len(flatten_files(inputs['overlays_video_1x1']))} files")
 
         st.markdown('<p class="section-header" style="margin-top: 16px;">Overlays (9x16)</p>', unsafe_allow_html=True)
-        st.write(f"Static: {len(inputs['overlays_static_9x16'])} files")
-        st.write(f"Video: {len(inputs['overlays_video_9x16'])} files")
+        st.write(f"Static: {len(flatten_files(inputs['overlays_static_9x16']))} files")
+        st.write(f"Video: {len(flatten_files(inputs['overlays_video_9x16']))} files")
 
         st.markdown('<div style="border-top: 1px solid #2a2a3a; margin: 20px 0;"></div>', unsafe_allow_html=True)
 
-        total_1x1 = len(inputs['heroes_1x1']) * (len(inputs['overlays_static_1x1']) + len(inputs['overlays_video_1x1']))
-        total_9x16 = len(inputs['heroes_9x16']) * (len(inputs['overlays_static_9x16']) + len(inputs['overlays_video_9x16']))
+        heroes_1x1_all = flatten_files(inputs['heroes_1x1'])
+        heroes_9x16_all = flatten_files(inputs['heroes_9x16'])
+        overlays_1x1_all = flatten_files(inputs['overlays_static_1x1']) + flatten_files(inputs['overlays_video_1x1'])
+        overlays_9x16_all = flatten_files(inputs['overlays_static_9x16']) + flatten_files(inputs['overlays_video_9x16'])
+
+        total_1x1 = len(heroes_1x1_all) * len(overlays_1x1_all)
+        total_9x16 = len(heroes_9x16_all) * len(overlays_9x16_all)
         st.metric("Total outputs", total_1x1 + total_9x16)
 
         st.markdown('<div style="border-top: 1px solid #2a2a3a; margin: 20px 0;"></div>', unsafe_allow_html=True)
@@ -286,9 +313,13 @@ def main():
     with tab1:
         st.markdown(f'<h3 style="display: flex; align-items: center; gap: 10px; color: #f0f0f0;"><span style="color: #7cb518">{ICONS["square"]}</span> 1x1 Format Positioning</h3>', unsafe_allow_html=True)
 
-        if not inputs['heroes_1x1']:
+        heroes_1x1_flat = flatten_files(inputs['heroes_1x1'])
+        overlays_static_1x1_flat = flatten_files(inputs['overlays_static_1x1'])
+        overlays_video_1x1_flat = flatten_files(inputs['overlays_video_1x1'])
+
+        if not heroes_1x1_flat:
             st.warning("No 1x1 heroes found. Add images to `inputs/heroes/1x1/`")
-        elif not inputs['overlays_static_1x1'] and not inputs['overlays_video_1x1']:
+        elif not overlays_static_1x1_flat and not overlays_video_1x1_flat:
             st.warning("No 1x1 overlays found. Add files to `inputs/overlays/static/1x1/` or `inputs/overlays/video/1x1/`")
         else:
             col1, col2 = st.columns([1, 2])
@@ -297,13 +328,13 @@ def main():
                 # Select preview files
                 hero_1x1 = st.selectbox(
                     "Preview Hero",
-                    inputs['heroes_1x1'],
+                    heroes_1x1_flat,
                     format_func=lambda x: x.name,
                     key="hero_1x1"
                 )
 
                 # Combine static and video overlays for preview
-                all_overlays_1x1 = inputs['overlays_static_1x1'] + inputs['overlays_video_1x1']
+                all_overlays_1x1 = overlays_static_1x1_flat + overlays_video_1x1_flat
                 overlay_preview = st.selectbox(
                     "Preview Overlay",
                     all_overlays_1x1,
@@ -407,9 +438,13 @@ def main():
     with tab2:
         st.markdown(f'<h3 style="display: flex; align-items: center; gap: 10px; color: #f0f0f0;"><span style="color: #7cb518">{ICONS["smartphone"]}</span> 9x16 Format Positioning</h3>', unsafe_allow_html=True)
 
-        if not inputs['heroes_9x16']:
+        heroes_9x16_flat = flatten_files(inputs['heroes_9x16'])
+        overlays_static_9x16_flat = flatten_files(inputs['overlays_static_9x16'])
+        overlays_video_9x16_flat = flatten_files(inputs['overlays_video_9x16'])
+
+        if not heroes_9x16_flat:
             st.warning("No 9x16 heroes found. Add images to `inputs/heroes/9x16/`")
-        elif not inputs['overlays_static_9x16'] and not inputs['overlays_video_9x16']:
+        elif not overlays_static_9x16_flat and not overlays_video_9x16_flat:
             st.warning("No 9x16 overlays found. Add files to `inputs/overlays/static/9x16/` or `inputs/overlays/video/9x16/`")
         else:
             col1, col2 = st.columns([1, 2])
@@ -417,13 +452,13 @@ def main():
             with col1:
                 hero_9x16 = st.selectbox(
                     "Preview Hero",
-                    inputs['heroes_9x16'],
+                    heroes_9x16_flat,
                     format_func=lambda x: x.name,
                     key="hero_9x16"
                 )
 
                 # Combine static and video overlays for preview
-                all_overlays_9x16 = inputs['overlays_static_9x16'] + inputs['overlays_video_9x16']
+                all_overlays_9x16 = overlays_static_9x16_flat + overlays_video_9x16_flat
                 overlay_preview_9x16 = st.selectbox(
                     "Preview Overlay",
                     all_overlays_9x16,
@@ -549,26 +584,55 @@ def main():
             st.write(f"**Total: {static_1x1 + static_9x16 + video_1x1 + video_9x16}**")
         
         st.divider()
-        
-        # Render options
-        render_static = st.checkbox("Render static overlays (PNG → PNG)", value=True)
-        render_video = st.checkbox("Render video overlays (MOV → MP4)", value=True)
-        
+
+        # Render filters
+        st.markdown('<p class="section-header">Render Filters</p>', unsafe_allow_html=True)
+
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            render_1x1 = st.checkbox("1x1 Format", value=True, key="render_1x1_check")
+            render_static = st.checkbox("Static overlays (PNG)", value=True, key="render_static_check")
+
+        with col_f2:
+            render_9x16 = st.checkbox("9x16 Format", value=True, key="render_9x16_check")
+            render_video = st.checkbox("Video overlays (MP4)", value=True, key="render_video_check")
+
+        # Subfolder selection
+        hero_subfolders = get_subfolders(inputs['heroes_1x1'])  # Use 1x1 as reference
+        overlay_subfolders = get_subfolders(inputs['overlays_static_1x1'])
+
+        col_s1, col_s2 = st.columns(2)
+        with col_s1:
+            hero_subfolder_filter = st.selectbox("Hero subfolder", hero_subfolders, key="hero_subfolder")
+        with col_s2:
+            overlay_subfolder_filter = st.selectbox("Overlay subfolder", overlay_subfolders, key="overlay_subfolder")
+
+        # Output subfolder name
+        output_subfolder = st.text_input(
+            "Output subfolder name",
+            value="render",
+            help="Subdirectory within outputs/{format}/ for this render batch",
+            key="output_subfolder"
+        )
+
         st.divider()
         
         if st.button("RENDER ALL", type="primary", use_container_width=True, icon=":material/play_arrow:"):
-            if not any([inputs['heroes_1x1'], inputs['heroes_9x16']]):
-                st.error("No hero images found!")
-            elif not any([inputs['overlays_static_1x1'], inputs['overlays_static_9x16'],
-                         inputs['overlays_video_1x1'], inputs['overlays_video_9x16']]):
-                st.error("No overlays found!")
-            else:
-                # Filter overlays based on checkboxes
-                overlays_s_1x1 = inputs['overlays_static_1x1'] if render_static else []
-                overlays_s_9x16 = inputs['overlays_static_9x16'] if render_static else []
-                overlays_v_1x1 = inputs['overlays_video_1x1'] if render_video else []
-                overlays_v_9x16 = inputs['overlays_video_9x16'] if render_video else []
+            # Filter heroes by subfolder
+            heroes_1x1_filtered = filter_by_subfolder(inputs['heroes_1x1'], hero_subfolder_filter) if render_1x1 else []
+            heroes_9x16_filtered = filter_by_subfolder(inputs['heroes_9x16'], hero_subfolder_filter) if render_9x16 else []
 
+            # Filter overlays by subfolder and type
+            overlays_s_1x1 = filter_by_subfolder(inputs['overlays_static_1x1'], overlay_subfolder_filter) if (render_static and render_1x1) else []
+            overlays_s_9x16 = filter_by_subfolder(inputs['overlays_static_9x16'], overlay_subfolder_filter) if (render_static and render_9x16) else []
+            overlays_v_1x1 = filter_by_subfolder(inputs['overlays_video_1x1'], overlay_subfolder_filter) if (render_video and render_1x1) else []
+            overlays_v_9x16 = filter_by_subfolder(inputs['overlays_video_9x16'], overlay_subfolder_filter) if (render_video and render_9x16) else []
+
+            if not heroes_1x1_filtered and not heroes_9x16_filtered:
+                st.error("No hero images match your filters!")
+            elif not any([overlays_s_1x1, overlays_s_9x16, overlays_v_1x1, overlays_v_9x16]):
+                st.error("No overlays match your filters!")
+            else:
                 progress_bar = st.progress(0)
                 status_text = st.empty()
 
@@ -578,12 +642,13 @@ def main():
 
                 with st.spinner("Rendering..."):
                     results = comp.render_all(
-                        heroes_1x1=inputs['heroes_1x1'],
-                        heroes_9x16=inputs['heroes_9x16'],
+                        heroes_1x1=heroes_1x1_filtered,
+                        heroes_9x16=heroes_9x16_filtered,
                         overlays_static_1x1=overlays_s_1x1,
                         overlays_static_9x16=overlays_s_9x16,
                         overlays_video_1x1=overlays_v_1x1,
                         overlays_video_9x16=overlays_v_9x16,
+                        output_subfolder=output_subfolder,
                         progress_callback=update_progress
                     )
                 
