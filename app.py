@@ -236,6 +236,15 @@ def filter_by_subfolder(file_dict: dict, subfolder: str) -> list[Path]:
         return file_dict.get("subfolders", {}).get(subfolder, [])
 
 
+def get_file_label(file_path: Path, file_dict: dict) -> str:
+    """Get display label for file showing subfolder if applicable"""
+    # Check if file is in a subfolder
+    for subfolder_name, files in file_dict.get("subfolders", {}).items():
+        if file_path in files:
+            return f"[{subfolder_name}] {file_path.name}"
+    return file_path.name
+
+
 def create_preview(hero_path: Path, overlay_path: Path, position: dict, frame_position: float = 0.0) -> Image.Image:
     """Create a preview composite image"""
     hero = Image.open(hero_path).convert("RGBA")
@@ -325,20 +334,38 @@ def main():
             col1, col2 = st.columns([1, 2])
 
             with col1:
+                # Subfolder filters
+                hero_subfolders_1x1 = get_subfolders(inputs['heroes_1x1'])
+                overlay_subfolders_1x1 = get_subfolders(inputs['overlays_static_1x1'])
+
+                col_sf1, col_sf2 = st.columns(2)
+                with col_sf1:
+                    hero_sf_1x1 = st.selectbox("Hero folder", hero_subfolders_1x1, key="hero_sf_1x1")
+                with col_sf2:
+                    overlay_sf_1x1 = st.selectbox("Overlay folder", overlay_subfolders_1x1, key="overlay_sf_1x1")
+
+                st.markdown('<div style="border-top: 1px solid #2a2a3a; margin: 12px 0;"></div>', unsafe_allow_html=True)
+
+                # Filter files by subfolder
+                heroes_1x1_filtered = filter_by_subfolder(inputs['heroes_1x1'], hero_sf_1x1)
+                overlays_static_1x1_filtered = filter_by_subfolder(inputs['overlays_static_1x1'], overlay_sf_1x1)
+                overlays_video_1x1_filtered = filter_by_subfolder(inputs['overlays_video_1x1'], overlay_sf_1x1)
+
                 # Select preview files
                 hero_1x1 = st.selectbox(
                     "Preview Hero",
-                    heroes_1x1_flat,
-                    format_func=lambda x: x.name,
+                    heroes_1x1_filtered,
+                    format_func=lambda x: get_file_label(x, inputs['heroes_1x1']),
                     key="hero_1x1"
                 )
 
                 # Combine static and video overlays for preview
-                all_overlays_1x1 = overlays_static_1x1_flat + overlays_video_1x1_flat
+                all_overlays_1x1 = overlays_static_1x1_filtered + overlays_video_1x1_filtered
+                all_overlays_dict = {**inputs['overlays_static_1x1'].get('subfolders', {}), **inputs['overlays_video_1x1'].get('subfolders', {})}
                 overlay_preview = st.selectbox(
                     "Preview Overlay",
                     all_overlays_1x1,
-                    format_func=lambda x: f"{x.name} {'[VIDEO]' if x.suffix.lower() in ['.mov', '.mp4'] else '[STATIC]'}",
+                    format_func=lambda x: f"{get_file_label(x, inputs['overlays_static_1x1'] if x.suffix.lower() == '.png' else inputs['overlays_video_1x1'])} {'[VIDEO]' if x.suffix.lower() in ['.mov', '.mp4'] else '[STATIC]'}",
                     key="overlay_1x1"
                 )
                 
@@ -450,19 +477,36 @@ def main():
             col1, col2 = st.columns([1, 2])
 
             with col1:
+                # Subfolder filters
+                hero_subfolders_9x16 = get_subfolders(inputs['heroes_9x16'])
+                overlay_subfolders_9x16 = get_subfolders(inputs['overlays_static_9x16'])
+
+                col_sf1, col_sf2 = st.columns(2)
+                with col_sf1:
+                    hero_sf_9x16 = st.selectbox("Hero folder", hero_subfolders_9x16, key="hero_sf_9x16")
+                with col_sf2:
+                    overlay_sf_9x16 = st.selectbox("Overlay folder", overlay_subfolders_9x16, key="overlay_sf_9x16")
+
+                st.markdown('<div style="border-top: 1px solid #2a2a3a; margin: 12px 0;"></div>', unsafe_allow_html=True)
+
+                # Filter files by subfolder
+                heroes_9x16_filtered = filter_by_subfolder(inputs['heroes_9x16'], hero_sf_9x16)
+                overlays_static_9x16_filtered = filter_by_subfolder(inputs['overlays_static_9x16'], overlay_sf_9x16)
+                overlays_video_9x16_filtered = filter_by_subfolder(inputs['overlays_video_9x16'], overlay_sf_9x16)
+
                 hero_9x16 = st.selectbox(
                     "Preview Hero",
-                    heroes_9x16_flat,
-                    format_func=lambda x: x.name,
+                    heroes_9x16_filtered,
+                    format_func=lambda x: get_file_label(x, inputs['heroes_9x16']),
                     key="hero_9x16"
                 )
 
                 # Combine static and video overlays for preview
-                all_overlays_9x16 = overlays_static_9x16_flat + overlays_video_9x16_flat
+                all_overlays_9x16 = overlays_static_9x16_filtered + overlays_video_9x16_filtered
                 overlay_preview_9x16 = st.selectbox(
                     "Preview Overlay",
                     all_overlays_9x16,
-                    format_func=lambda x: f"{x.name} {'[VIDEO]' if x.suffix.lower() in ['.mov', '.mp4'] else '[STATIC]'}",
+                    format_func=lambda x: f"{get_file_label(x, inputs['overlays_static_9x16'] if x.suffix.lower() == '.png' else inputs['overlays_video_9x16'])} {'[VIDEO]' if x.suffix.lower() in ['.mov', '.mp4'] else '[STATIC]'}",
                     key="overlay_9x16"
                 )
                 
