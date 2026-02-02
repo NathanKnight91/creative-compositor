@@ -245,6 +245,14 @@ def get_file_label(file_path: Path, file_dict: dict) -> str:
     return file_path.name
 
 
+def get_all_subfolders(*file_dicts) -> list[str]:
+    """Get combined list of all unique subfolders across multiple file dicts"""
+    all_subfolders = set()
+    for file_dict in file_dicts:
+        all_subfolders.update(file_dict.get("subfolders", {}).keys())
+    return ["all"] + sorted(all_subfolders) if all_subfolders else ["all"]
+
+
 def create_preview(hero_path: Path, overlay_path: Path, position: dict, frame_position: float = 0.0) -> Image.Image:
     """Create a preview composite image"""
     hero = Image.open(hero_path).convert("RGBA")
@@ -641,9 +649,14 @@ def main():
             render_9x16 = st.checkbox("9x16 Format", value=True, key="render_9x16_check")
             render_video = st.checkbox("Video overlays (MP4)", value=True, key="render_video_check")
 
-        # Subfolder selection
-        hero_subfolders = get_subfolders(inputs['heroes_1x1'])  # Use 1x1 as reference
-        overlay_subfolders = get_subfolders(inputs['overlays_static_1x1'])
+        # Subfolder selection - combine from both formats
+        hero_subfolders = get_all_subfolders(inputs['heroes_1x1'], inputs['heroes_9x16'])
+        overlay_subfolders = get_all_subfolders(
+            inputs['overlays_static_1x1'],
+            inputs['overlays_static_9x16'],
+            inputs['overlays_video_1x1'],
+            inputs['overlays_video_9x16']
+        )
 
         col_s1, col_s2 = st.columns(2)
         with col_s1:
