@@ -128,15 +128,28 @@ Output structure: `outputs/{format}/{your-custom-name}/hero_overlay.{png|mp4}`
 ## Project Structure
 
 ```
-├── app.py                   # Streamlit UI
-├── compositor.py            # Core rendering engine
-├── requirements.txt         # Python dependencies
+├── app.py                      # Lightweight router
+├── compositor.py               # Core rendering engine
+├── config.json                 # Position memory (auto-generated)
+│
+├── tools/                      # Feature modules
+│   └── overlay_tool.py         # Overlay compositor tool
+│
+├── ui/                         # Shared UI components
+│   ├── styles.py               # CSS theme (Channel 4-inspired)
+│   └── preview.py              # Live preview rendering
+│
+├── utils/                      # Shared utilities
+│   └── file_scanner.py         # Asset scanning
+│
 ├── .streamlit/
-│   └── config.toml          # Theme (Channel 4-inspired)
-├── inputs/                  # Your assets (not in repo)
-├── outputs/                 # Rendered files (not in repo)
-└── config.json             # Position memory (auto-generated)
+│   └── config.toml             # Streamlit theme config
+│
+├── inputs/                     # Your assets (not in repo)
+└── outputs/                    # Rendered files (not in repo)
 ```
+
+**Modular architecture** - Each tool is isolated in `tools/`, making it easy to add new features (text overlay, templates, etc.) without touching existing code.
 
 ## Requirements
 
