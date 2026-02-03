@@ -25,21 +25,21 @@ def render(comp, inputs, base_path):
 
     # Sidebar - font status
     with st.sidebar:
-        st.markdown(f'<div class="icon" style="font-size: 1.2rem; font-weight: 600; margin-bottom: 16px;">🔤 Fonts</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="icon" style="font-size: 1.2rem; font-weight: 600; margin-bottom: 16px;">{ICONS["type"]} Fonts</div>', unsafe_allow_html=True)
 
         if font_families:
-            st.write(f"✅ {len(font_families)} font famil{'y' if len(font_families) == 1 else 'ies'}")
+            st.write(f"{len(font_families)} font famil{'y' if len(font_families) == 1 else 'ies'} available")
             with st.expander("Available fonts"):
                 for family, styles in font_families.items():
                     st.caption(f"**{family}**: {', '.join(styles.keys())}")
         else:
-            st.warning("⚠️ No fonts found")
+            st.warning("No fonts found")
             st.caption("Add .ttf or .otf files to `assets/fonts/`")
             st.caption("For best results, add font variants:")
-            st.caption("• FontName-Regular.ttf")
-            st.caption("• FontName-Bold.ttf")
-            st.caption("• FontName-Italic.ttf")
-            st.caption("• FontName-BoldItalic.ttf")
+            st.caption("- FontName-Regular.ttf")
+            st.caption("- FontName-Bold.ttf")
+            st.caption("- FontName-Italic.ttf")
+            st.caption("- FontName-BoldItalic.ttf")
 
         st.markdown('<div style="border-top: 1px solid #2a2a3a; margin: 20px 0;"></div>', unsafe_allow_html=True)
 
@@ -63,11 +63,11 @@ def render(comp, inputs, base_path):
 
 def render_design_tab(comp, inputs, base_path, font_families):
     """Render the 3-line text design and preview tab"""
-    st.markdown(f'<h3 style="display: flex; align-items: center; gap: 10px; color: #f0f0f0;"><span style="color: #7cb518">✏️</span> 3-Line Text Design</h3>', unsafe_allow_html=True)
+    st.markdown(f'<h3 style="display: flex; align-items: center; gap: 10px; color: #f0f0f0;"><span style="color: #7cb518">{ICONS["edit"]}</span> 3-Line Text Design</h3>', unsafe_allow_html=True)
 
     if not font_families:
         st.error("No fonts available. Add .ttf or .otf files to `assets/fonts/` to get started.")
-        st.info("💡 Download free fonts from [Google Fonts](https://fonts.google.com/) - get Regular, Bold, Italic, and Bold Italic variants!")
+        st.info("Download free fonts from [Google Fonts](https://fonts.google.com/) - get Regular, Bold, Italic, and Bold Italic variants!")
         return
 
     col1, col2 = st.columns([1, 2])
@@ -128,7 +128,7 @@ def render_design_tab(comp, inputs, base_path, font_families):
 
         lines = []
         for i in range(1, 4):
-            with st.expander(f"📝 Line {i}", expanded=(i == 1)):
+            with st.expander(f"Line {i}", expanded=(i == 1)):
                 text = st.text_input(
                     f"Text",
                     value=f"LINE {i}" if i == 1 else "",
@@ -250,7 +250,7 @@ def render_design_tab(comp, inputs, base_path, font_families):
 
                 st.image(preview, caption="Live Preview", use_container_width=False)
             else:
-                st.info("👆 Enter text in Line 1, 2, or 3 to see preview")
+                st.info("Enter text in Line 1, 2, or 3 to see preview")
 
 
 def render_batch_tab(comp, inputs, base_path, font_families):
@@ -261,7 +261,7 @@ def render_batch_tab(comp, inputs, base_path, font_families):
         st.error("No fonts available. Add .ttf or .otf files to `assets/fonts/` first.")
         return
 
-    st.info("ℹ️ Batch rendering with saved configs coming soon! For now, use the Design tab to create individual outputs.")
+    st.info("Batch rendering with saved configs coming soon! For now, use the Design tab to create individual outputs.")
 
     col1, col2 = st.columns(2)
 
@@ -283,9 +283,9 @@ def render_batch_tab(comp, inputs, base_path, font_families):
 
     st.divider()
 
-    st.markdown("### 🚧 Coming Soon")
+    st.markdown("### Coming Soon")
     st.write("Batch rendering features:")
-    st.write("• Save 3-line configurations per format")
-    st.write("• Apply saved config to multiple heroes")
-    st.write("• CSV import for dynamic text replacement")
-    st.write("• Per-hero text customization")
+    st.write("- Save 3-line configurations per format")
+    st.write("- Apply saved config to multiple heroes")
+    st.write("- CSV import for dynamic text replacement")
+    st.write("- Per-hero text customization")

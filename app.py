@@ -34,7 +34,7 @@ def main():
     inputs = scan_inputs(BASE_PATH)
 
     # Tool selector in sidebar
-    st.sidebar.markdown('<div style="border-bottom: 2px solid #7cb518; margin-bottom: 20px; padding-bottom: 10px;"><h3 style="margin: 0;">🛠️ Tools</h3></div>', unsafe_allow_html=True)
+    st.sidebar.markdown('<div style="border-bottom: 2px solid #7cb518; margin-bottom: 20px; padding-bottom: 10px;"><h3 style="margin: 0;">Tools</h3></div>', unsafe_allow_html=True)
 
     tool = st.sidebar.radio(
         "Select Tool",
