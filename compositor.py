@@ -211,7 +211,204 @@ class Compositor:
         """Get dimensions of a hero image"""
         with Image.open(hero_path) as img:
             return img.size
-    
+
+    def get_text_config(self, format_type: str) -> dict:
+        """Get text overlay configuration for a format"""
+        key = f"{format_type}_text"
+        defaults = {
+            "x": 0,
+            "y": 0,
+            "text": "Sample Text",
+            "font_size": 48,
+            "color": "#FFFFFF",
+            "alignment": "mm"  # middle-middle
+        }
+        return self.config.get(key, defaults)
+
+    def set_text_config(self, format_type: str, x: int, y: int, text: str, font_size: int, color: str, alignment: str):
+        """Save text overlay configuration for a format"""
+        key = f"{format_type}_text"
+        self.config[key] = {
+            "x": x,
+            "y": y,
+            "text": text,
+            "font_size": font_size,
+            "color": color,
+            "alignment": alignment
+        }
+        self.save_config()
+
+    def composite_text(
+        self,
+        hero_path: Path,
+        output_path: Path,
+        text: str,
+        font_path: Path,
+        font_size: int,
+        color: str,
+        position: dict
+    ) -> bool:
+        """
+        Composite text onto a hero image
+
+        Args:
+            hero_path: Path to hero image
+            output_path: Where to save the result
+            text: Text to overlay
+            font_path: Path to TTF/OTF font file
+            font_size: Font size in pixels
+            color: Hex color code (e.g., "#FFFFFF")
+            position: Dict with x, y, alignment keys
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            from PIL import ImageDraw, ImageFont
+
+            # Load hero image
+            hero = Image.open(hero_path).convert("RGBA")
+
+            # Create drawing context
+            draw = ImageDraw.Draw(hero)
+
+            # Load font
+            if font_path and font_path.exists():
+                font = ImageFont.truetype(str(font_path), font_size)
+            else:
+                # Fallback to default font
+                font = ImageFont.load_default()
+
+            # Get position and alignment
+            x = int(position.get("x", 0))
+            y = int(position.get("y", 0))
+            alignment = position.get("alignment", "mm")
+
+            # Convert hex color to RGB tuple
+            # Color picker returns "#FFFFFF", PIL needs (255, 255, 255)
+            color_rgb = tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+
+            # Draw text
+            draw.text(
+                xy=(x, y),
+                text=text,
+                font=font,
+                fill=color_rgb,  # Fixed: Now using RGB tuple instead of hex string
+                anchor=alignment
+            )
+
+            # Save result
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            hero.save(output_path, "PNG")
+            return True
+
+        except Exception as e:
+            print(f"Error compositing text: {e}")
+            return False
+
+    def composite_multiline_text(
+        self,
+        hero_path: Path,
+        output_path: Path,
+        lines: list[dict],
+        font_family: dict,
+        color: str,
+        position: dict,
+        line_spacing: int = 10
+    ) -> bool:
+        """
+        Composite multiple text lines with different styles onto a hero image
+
+        Args:
+            hero_path: Path to hero image
+            output_path: Where to save the result
+            lines: List of dicts with keys: text, size, style (e.g., [{"text": "LINE 1", "size": 72, "style": "Bold"}])
+            font_family: Dict of font variants (e.g., {"Regular": Path(...), "Bold": Path(...)})
+            color: Hex color code for all lines
+            position: Dict with x, y, alignment keys (for the whole text block)
+            line_spacing: Vertical pixels between lines
+
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            from PIL import ImageDraw, ImageFont
+
+            # Load hero image
+            hero = Image.open(hero_path).convert("RGBA")
+            draw = ImageDraw.Draw(hero)
+
+            # Convert hex color to RGB
+            color_rgb = tuple(int(color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+
+            # Get base position
+            base_x = int(position.get("x", 0))
+            base_y = int(position.get("y", 0))
+            alignment = position.get("alignment", "mm")
+
+            # Calculate total height to properly center the block
+            total_height = 0
+            loaded_lines = []
+
+            for line_data in lines:
+                text = line_data.get("text", "")
+                if not text:  # Skip empty lines
+                    continue
+
+                size = line_data.get("size", 48)
+                style = line_data.get("style", "Regular")
+
+                # Load appropriate font variant
+                font_path = font_family.get(style, font_family.get("Regular"))
+                if font_path and font_path.exists():
+                    font = ImageFont.truetype(str(font_path), size)
+                else:
+                    font = ImageFont.load_default()
+
+                # Get text dimensions
+                bbox = draw.textbbox((0, 0), text, font=font, anchor=alignment)
+                text_height = bbox[3] - bbox[1]
+
+                loaded_lines.append({
+                    "text": text,
+                    "font": font,
+                    "height": text_height
+                })
+
+                total_height += text_height
+
+            # Add spacing between lines
+            if len(loaded_lines) > 1:
+                total_height += line_spacing * (len(loaded_lines) - 1)
+
+            # Adjust starting Y based on alignment
+            if "m" in alignment:  # Middle alignment
+                current_y = base_y - (total_height // 2)
+            elif "b" in alignment:  # Bottom alignment
+                current_y = base_y - total_height
+            else:  # Top alignment
+                current_y = base_y
+
+            # Draw each line
+            for line_info in loaded_lines:
+                draw.text(
+                    xy=(base_x, current_y),
+                    text=line_info["text"],
+                    font=line_info["font"],
+                    fill=color_rgb,
+                    anchor=alignment
+                )
+                current_y += line_info["height"] + line_spacing
+
+            # Save result
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            hero.save(output_path, "PNG")
+            return True
+
+        except Exception as e:
+            print(f"Error compositing multiline text: {e}")
+            return False
+
     def render_all(
         self,
         heroes_1x1: list[Path],

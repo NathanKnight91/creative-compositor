@@ -81,3 +81,73 @@ def get_all_subfolders(*file_dicts) -> list[str]:
     for file_dict in file_dicts:
         all_subfolders.update(file_dict.get("subfolders", {}).keys())
     return ["all"] + sorted(all_subfolders) if all_subfolders else ["all"]
+
+
+def scan_fonts(base_path: Path) -> list[Path]:
+    """
+    Scan assets/fonts/ directory for font files
+
+    Returns:
+        List of Path objects for TTF/OTF font files
+    """
+    fonts_path = base_path / "assets/fonts"
+
+    # Create directory if it doesn't exist
+    if not fonts_path.exists():
+        fonts_path.mkdir(parents=True, exist_ok=True)
+        return []
+
+    fonts = []
+    # Scan for TrueType and OpenType fonts
+    for ext in ["ttf", "TTF", "otf", "OTF"]:
+        fonts.extend(list(fonts_path.glob(f"*.{ext}")))
+
+    return sorted(fonts)
+
+
+def scan_font_families(base_path: Path) -> dict:
+    """
+    Scan fonts and group by family with available styles
+
+    Returns:
+        Dict mapping family names to available style variants
+        Example: {
+            "Arial": {
+                "Regular": Path("Arial.ttf"),
+                "Bold": Path("Arial-Bold.ttf"),
+                "Italic": Path("Arial-Italic.ttf")
+            }
+        }
+    """
+    fonts = scan_fonts(base_path)
+    families = {}
+
+    for font_path in fonts:
+        font_name = font_path.stem  # Filename without extension
+
+        # Detect style from filename
+        style = "Regular"
+        family_name = font_name
+
+        # Common naming patterns
+        if "-Bold" in font_name or " Bold" in font_name:
+            if "-BoldItalic" in font_name or " Bold Italic" in font_name:
+                style = "Bold Italic"
+                family_name = font_name.replace("-BoldItalic", "").replace(" Bold Italic", "")
+            else:
+                style = "Bold"
+                family_name = font_name.replace("-Bold", "").replace(" Bold", "")
+        elif "-Italic" in font_name or " Italic" in font_name:
+            style = "Italic"
+            family_name = font_name.replace("-Italic", "").replace(" Italic", "")
+        elif "-Regular" in font_name or " Regular" in font_name:
+            style = "Regular"
+            family_name = font_name.replace("-Regular", "").replace(" Regular", "")
+
+        # Group by family
+        if family_name not in families:
+            families[family_name] = {}
+
+        families[family_name][style] = font_path
+
+    return families
