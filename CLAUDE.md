@@ -61,6 +61,14 @@ Uses Streamlit Material icons (`:material/icon_name:`) for buttons. Header uses 
 - **app.py**: Frontend with position controls, preview, render triggers. CSS injection block at top defines custom styling.
 - **compositor.py**: Image/video compositing engine. Handles scaling, positioning, format conversion.
 
+## Development Philosophy
+
+This is a learning project. Priorities:
+1. Clean architecture over quick hacks
+2. Explain the "why" behind technical decisions
+3. Iterate and refactor as we learn
+4. Build modular, scalable features
+
 ## Notes
 
 - Positions are stored per-hero, per-overlay, per-aspect-ratio

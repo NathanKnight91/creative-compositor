@@ -11,6 +11,9 @@ from typing import Optional
 import shutil
 import tempfile
 
+# Import file scanning utilities for backwards compatibility
+from utils.file_scanner import scan_inputs
+
 
 class Compositor:
     def __init__(self, base_path: Path = None):
@@ -293,44 +296,6 @@ class Compositor:
                 results["failed"] += 1
         
         return results
-
-
-def scan_inputs(base_path: Path) -> dict:
-    """Scan input folders and return found files organized by subfolder"""
-
-    def scan_with_subfolders(path: Path, extensions: list) -> dict:
-        """Scan directory for files, organizing by subfolder"""
-        result = {"root": [], "subfolders": {}}
-
-        if not path.exists():
-            return result
-
-        # Get files in root
-        for ext in extensions:
-            result["root"].extend(list(path.glob(f"*.{ext}")))
-
-        # Get subfolders and their files
-        for subfolder in path.iterdir():
-            if subfolder.is_dir():
-                files = []
-                for ext in extensions:
-                    files.extend(list(subfolder.glob(f"*.{ext}")))
-                if files:
-                    result["subfolders"][subfolder.name] = files
-
-        return result
-
-    image_exts = ["png", "jpg", "jpeg", "PNG", "JPG", "JPEG"]
-    video_exts = ["mov", "MOV", "mp4", "MP4"]
-
-    return {
-        "heroes_1x1": scan_with_subfolders(base_path / "inputs/heroes/1x1", image_exts),
-        "heroes_9x16": scan_with_subfolders(base_path / "inputs/heroes/9x16", image_exts),
-        "overlays_static_1x1": scan_with_subfolders(base_path / "inputs/overlays/static/1x1", ["png", "PNG"]),
-        "overlays_static_9x16": scan_with_subfolders(base_path / "inputs/overlays/static/9x16", ["png", "PNG"]),
-        "overlays_video_1x1": scan_with_subfolders(base_path / "inputs/overlays/video/1x1", video_exts),
-        "overlays_video_9x16": scan_with_subfolders(base_path / "inputs/overlays/video/9x16", video_exts)
-    }
 
 
 if __name__ == "__main__":
