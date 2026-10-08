@@ -39,6 +39,8 @@ creative-compositor/
 ├── .streamlit/
 │   └── config.toml             # Theme configuration
 │
+├── explainer/                  # Remotion explainer video (see explainer/README.md)
+│
 ├── inputs/
 │   ├── heroes/1x1/             # 1x1 hero images
 │   ├── heroes/9x16/            # 9x16 hero images
