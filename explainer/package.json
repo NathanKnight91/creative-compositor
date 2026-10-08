@@ -1,0 +1,21 @@
+{
+  "name": "creative-compositor-explainer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion explainer video for Creative Compositor",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Explainer out/explainer.mp4",
+    "still": "remotion still Explainer out/poster.png --frame=60"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.534",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.534"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "typescript": "5.6.3"
+  }
+}
